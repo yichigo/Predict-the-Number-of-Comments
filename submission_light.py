@@ -292,11 +292,17 @@ class DecisionTree:
 
 
     def find_split_threshold(self, feature, classes): # for single sorted feature
-        feature_unique = np.unique(feature) # unique() automatically sort the result
-        if len(feature_unique) == 1: 
-            return 0.0, feature_unique[0]
+        val_max = np.max(feature)
+        val_min = np.min(feature)
+        if val_max == val_min:
+            return 0.0, val_max
+        
+        if len(feature) < 10: 
+            feature_unique = np.unique(feature)
+            thresholds = (feature_unique[1:] + feature_unique[:-1]) / 2.0
+        else:
+            thresholds = np.linspace(val_min, val_max, 10)
 
-        thresholds = (feature_unique[1:] + feature_unique[:-1]) / 2.0
         neg_mean_error_gain_max = 0.0
         threshold_best = thresholds[0]
         for threshold in thresholds:
@@ -338,9 +344,8 @@ class DecisionTree:
         i_best = 0
         neg_mean_error_gain_max = 0.0
         threshold_best = 0.0
-        idx = np.argsort(features, axis = 0) # index of each sorted columns
         for i in range(features.shape[1]):
-            neg_mean_error_gain_curr, threshold = self.find_split_threshold(features[idx[:,i],i], classes[idx[:,i]])
+            neg_mean_error_gain_curr, threshold = self.find_split_threshold(features[:,i], classes)
             
             if neg_mean_error_gain_curr > neg_mean_error_gain_max:
                 i_best = i
